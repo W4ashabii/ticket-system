@@ -107,34 +107,38 @@ export default function Home() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-full mx-auto px-1 sm:px-6 lg:px-20 bg-gradient-to-br from-black via-neutral-900 to-neutral-800 pt-2">
           <div className="flex justify-between items-center py-6">
             <motion.div 
               className="flex items-center space-x-2"
               whileHover={{ scale: 1.05 }}
             >
-              <Ticket className="h-8 w-8 text-black" />
-              <h1 className="text-2xl font-bold text-black">TicketHub</h1>
+              <Ticket className="h-10 w-10 text-white " />
+              <h1 className="text-3xl font-bold text-white">TicketHub</h1>
             </motion.div>
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-black hover:text-gray-600 transition-colors">
+            <nav className="block md:flex space-x-8">
+               <Link href="/" className="flex items-center space-x-1 text-white hover:text-gray-400  font-bold transition-colors duration-300">
+              <Calendar className="h-5 w-8 text-current" />{}
                 Events
               </Link>
-              <Link href="/admin" className="text-black hover:text-gray-600 transition-colors">
-                Admin
+              <button >
+              
+              <Link href="/admin" className="flex items-center space-x-1 text-white hover:text-gray-400  font-bold transition-colors ">
+              Admin
               </Link>
+              </button>
             </nav>
           </div>
         </div>
       </motion.header>
 
       <motion.section 
-        className="py-20 text-center"
+        className="py-20 text-center bg-gradient-to-r from-gray via-neutral-300 to-neutral-200 text-white"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ">
           <motion.h2 
             className="text-5xl md:text-6xl font-bold text-black mb-6"
             initial={{ opacity: 0, y: 30 }}
@@ -144,17 +148,17 @@ export default function Home() {
             Discover Amazing Events
           </motion.h2>
           <motion.p 
-            className="text-xl text-gray-600 mb-8"
+            className="text-xl text-zinc-700 mb-8"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Book tickets for the best events in town with our seamless eSewa integration
+             Your booking partner for the best events in town with our quick and seamless payment through eSewa integration
           </motion.p>
         </div>
       </motion.section>
 
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gradient-to-r from-gray via-neutral-300 to-neutral-200 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h3 
             className="text-3xl font-bold text-black text-center mb-12"
@@ -176,7 +180,7 @@ export default function Home() {
             </div>
           ) : (
             <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 "
               variants={containerVariants}
               initial="hidden"
               animate="visible"
@@ -184,38 +188,38 @@ export default function Home() {
               {events.map((event) => (
                 <motion.div
                   key={event.id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                  className="bg-gradient-to-tr from-neutral-400 via-neutral-300 to-neutral-400 rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
                   variants={itemVariants}
                   whileHover={{ y: -5 }}
                 >
-                  <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                    <Calendar className="h-16 w-16 text-gray-400" />
+                  <div className="h-48 bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
+                    <Calendar className="h-16 w-16 text-gray-300" />
                   </div>
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-500 uppercase tracking-wide">
+                      <span className="text-sm text-zinc-700 uppercase tracking-wide">
                         {event.category}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-zinc-700">
                         {getAvailableTickets(event)} tickets left
                       </span>
                     </div>
                     <h4 className="text-xl font-bold text-black mb-2">
                       {event.title}
                     </h4>
-                    <p className="text-gray-600 mb-4 line-clamp-2">
+                    <p className="text-zinc-700 mb-4 line-clamp-2">
                       {event.description}
                     </p>
                     <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-sm text-gray-600">
+                      <div className="flex items-center text-sm text-zinc-700">
                         <Calendar className="h-4 w-4 mr-2" />
                         {formatDate(event.date)}
                       </div>
-                      <div className="flex items-center text-sm text-gray-600">
+                      <div className="flex items-center text-sm text-zinc-700">
                         <Clock className="h-4 w-4 mr-2" />
                         {event.time}
                       </div>
-                      <div className="flex items-center text-sm text-gray-600">
+                      <div className="flex items-center text-sm text-zinc-700">
                         <MapPin className="h-4 w-4 mr-2" />
                         {event.venue}
                       </div>
