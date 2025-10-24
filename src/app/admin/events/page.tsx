@@ -55,15 +55,24 @@ const mockEvents: Event[] = [
 ];
 
 export default function AdminEvents() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<Event[]>(() => {
+    return JSON.parse(localStorage.getItem("events") || "null") || mockEvents;
+  });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive' | 'sold_out'>('all');
 
   useEffect(() => {
     setTimeout(() => {
-      setEvents(mockEvents);
+      const storedEvents =JSON.parse(localStorage.getItem("events") || "null");
+      if (!storedEvents) {
+        localStorage.setItem("events", JSON.stringify(mockEvents));
+        setEvents(mockEvents);
+      } else {
+        setEvents(storedEvents);
+      }
       setLoading(false);
-    }, 1000);
+    }, 1000)
+
   }, []);
 
   const formatDate = (dateString: string) => {
@@ -93,7 +102,9 @@ export default function AdminEvents() {
 
   const handleDeleteEvent = (eventId: string) => {
     if (confirm('Are you sure you want to delete this event?')) {
-      setEvents(events.filter(event => event.id !== eventId));
+      const updatedEvents = events.filter(event => event.id !== eventId);
+      setEvents(updatedEvents);
+      localStorage.setItem("events", JSON.stringify(updatedEvents));
     }
   };
 
