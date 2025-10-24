@@ -3,8 +3,10 @@
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Clock, Ticket, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Event } from '@/types';
+import { eventsStore } from '@/services/events';
 
 const mockEvents: Event[] = [
   {
@@ -55,14 +57,15 @@ const mockEvents: Event[] = [
 ];
 
 export default function Home() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<Event[]>(eventsStore.getAll());
+  const [loading, setLoading] = useState(events.length === 0);
 
   useEffect(() => {
-    setTimeout(() => {
-      setEvents(mockEvents);
+    const unsubscribe = eventsStore.subscribe((list) => {
+      setEvents(list);
       setLoading(false);
-    }, 1000);
+    });
+    return unsubscribe;
   }, []);
 
   const containerVariants = {
@@ -70,18 +73,23 @@ export default function Home() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.15,
+        delayChildren: 0.1
       }
     }
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
     visible: {
       opacity: 1,
       y: 0,
+      scale: 1,
       transition: {
-        duration: 0.5
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+        mass: 0.8
       }
     }
   };
@@ -103,15 +111,21 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <motion.header 
         className="border-b border-gray-200"
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 120, 
+          damping: 20,
+          mass: 0.8
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <motion.div 
               className="flex items-center space-x-2"
               whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               <Ticket className="h-8 w-8 text-black" />
               <h1 className="text-2xl font-bold text-black">TicketHub</h1>
@@ -130,24 +144,40 @@ export default function Home() {
 
       <motion.section 
         className="py-20 text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 80, 
+          damping: 20,
+          mass: 1,
+          delay: 0.2
+        }}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 
             className="text-5xl md:text-6xl font-bold text-black mb-6"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 100, 
+              damping: 15,
+              delay: 0.4
+            }}
           >
             Discover Amazing Events
           </motion.h2>
           <motion.p 
             className="text-xl text-gray-600 mb-8"
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 120, 
+              damping: 15,
+              delay: 0.6
+            }}
           >
             Book tickets for the best events in town with our seamless eSewa integration
           </motion.p>
@@ -158,9 +188,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h3 
             className="text-3xl font-bold text-black text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 100, 
+              damping: 15
+            }}
             viewport={{ once: true }}
           >
             Upcoming Events
@@ -171,12 +205,12 @@ export default function Home() {
               <motion.div
                 className="w-8 h-8 border-2 border-black border-t-transparent rounded-full"
                 animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
               />
             </div>
           ) : (
             <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
               variants={containerVariants}
               initial="hidden"
               animate="visible"
@@ -184,13 +218,38 @@ export default function Home() {
               {events.map((event) => (
                 <motion.div
                   key={event.id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                  className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 will-change-transform"
                   variants={itemVariants}
-                  whileHover={{ y: -5 }}
+                  whileHover={{ 
+                    y: -8,
+                    scale: 1.02,
+                    transition: { 
+                      type: "spring", 
+                      stiffness: 300, 
+                      damping: 20 
+                    }
+                  }}
                 >
-                  <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                    <Calendar className="h-16 w-16 text-gray-400" />
-                  </div>
+                  {event.image ? (
+                    <div className="h-52 relative overflow-hidden">
+                      <motion.div 
+                        initial={{ scale: 1.0 }} 
+                        whileHover={{ scale: 1.05 }} 
+                        transition={{ 
+                          type: "spring", 
+                          stiffness: 200, 
+                          damping: 20 
+                        }}
+                        className="h-full w-full"
+                      >
+                        <Image src={event.image} alt={event.title} fill className="object-cover object-center" />
+                      </motion.div>
+                    </div>
+                  ) : (
+                    <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                      <Calendar className="h-16 w-16 text-gray-400" />
+                    </div>
+                  )}
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-500 uppercase tracking-wide">
@@ -227,8 +286,14 @@ export default function Home() {
                       <Link href={`/events/${event.id}`}>
                         <motion.button
                           className="bg-black text-white px-6 py-2 rounded-lg flex items-center space-x-2 hover:bg-gray-800 transition-colors btn-hover"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                          whileHover={{ 
+                            scale: 1.05,
+                            transition: { type: "spring", stiffness: 300, damping: 20 }
+                          }}
+                          whileTap={{ 
+                            scale: 0.95,
+                            transition: { type: "spring", stiffness: 400, damping: 25 }
+                          }}
                         >
                           <span>Book Now</span>
                           <ArrowRight className="h-4 w-4" />
@@ -245,9 +310,13 @@ export default function Home() {
 
       <motion.footer 
         className="bg-black text-white py-12"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 80, 
+          damping: 20
+        }}
         viewport={{ once: true }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
