@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TicketHub - Event Tickets",
-  description: "A minimalist black and white themed ticket booking system",
+  title: "TicketHub - Event Booking Platform",
+  description: "Book tickets for amazing events with seamless eSewa integration",
 };
 
 export default function RootLayout({

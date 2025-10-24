@@ -3,10 +3,10 @@
 import { motion } from 'framer-motion';
 import { CheckCircle, Home } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function PaymentSuccess() {
+function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const [transactionId, setTransactionId] = useState<string>('');
 
@@ -18,70 +18,147 @@ export default function PaymentSuccess() {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <motion.div
+          className="absolute top-20 left-20 w-2 h-2 bg-[var(--text-quaternary)] rounded-full opacity-20"
+          animate={{
+            scale: [1, 1.5, 1],
+            opacity: [0.2, 0.6, 0.2],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      </div>
+      
       <motion.div
-        className="max-w-md w-full text-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        className="max-w-md w-full text-center relative z-10"
+        initial={{ opacity: 0, y: 30, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 100,
+          damping: 20,
+          duration: 0.8 
+        }}
       >
         <motion.div
           className="mb-8"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 200,
+            damping: 20,
+            delay: 0.2 
+          }}
         >
-          <CheckCircle className="h-24 w-24 text-green-600 mx-auto" />
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          >
+            <CheckCircle className="h-24 w-24 text-[var(--text-primary)] mx-auto" />
+          </motion.div>
         </motion.div>
 
         <motion.h1
-          className="text-3xl font-bold text-black mb-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          className="text-4xl font-bold text-[var(--text-primary)] mb-6 gradient-text"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 100,
+            damping: 20,
+            delay: 0.4 
+          }}
         >
           Payment Successful!
         </motion.h1>
 
         <motion.p
-          className="text-gray-600 mb-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
+          className="text-[var(--text-tertiary)] mb-8 text-lg leading-relaxed"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 100,
+            damping: 20,
+            delay: 0.6 
+          }}
         >
           Your tickets have been booked successfully. You will receive a confirmation email shortly.
         </motion.p>
 
         {transactionId && (
           <motion.div
-            className="bg-gray-50 rounded-lg p-4 mb-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
+            className="card-elevated p-6 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              type: "spring",
+              stiffness: 100,
+              damping: 20,
+              delay: 0.8 
+            }}
           >
-            <p className="text-sm text-gray-500 mb-1">Transaction ID</p>
-            <p className="font-mono text-sm text-black">{transactionId}</p>
+            <p className="text-sm text-[var(--text-quaternary)] mb-2 font-semibold">Transaction ID</p>
+            <p className="font-mono text-sm text-[var(--text-primary)] bg-[var(--bg-secondary)] p-2 rounded-lg">{transactionId}</p>
           </motion.div>
         )}
 
         <motion.div
           className="space-y-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 100,
+            damping: 20,
+            delay: 1 
+          }}
         >
           <Link href="/">
             <motion.button
-              className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors btn-hover flex items-center justify-center space-x-2"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className="w-full btn-primary py-4 text-lg font-semibold flex items-center justify-center space-x-3 group"
+              whileHover={{ 
+                scale: 1.05,
+                transition: { type: "spring", stiffness: 300, damping: 20 }
+              }}
+              whileTap={{ 
+                scale: 0.95,
+                transition: { type: "spring", stiffness: 400, damping: 25 }
+              }}
             >
-              <Home className="h-4 w-4" />
+              <motion.div
+                animate={{ x: [0, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Home className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
+              </motion.div>
               <span>Back to Events</span>
             </motion.button>
           </Link>
         </motion.div>
       </motion.div>
     </div>
+  );
+}
+
+export default function PaymentSuccess() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }

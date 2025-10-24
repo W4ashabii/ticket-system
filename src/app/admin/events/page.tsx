@@ -1,50 +1,53 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, MapPin, Clock, Edit, Trash2, Eye, Plus } from 'lucide-react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Calendar, MapPin, Clock, Edit, Trash2, Eye, Plus, Filter, Users, DollarSign } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Event } from '@/types';
 import { eventsStore } from '@/services/events';
+import { AdminSidebar } from '@/components/AdminSidebar';
 
-const mockEvents: Event[] = [];
 
 export default function AdminEvents() {
-<<<<<<< HEAD
   const [events, setEvents] = useState<Event[]>(eventsStore.getAll());
   const [loading, setLoading] = useState(events.length === 0);
-=======
-  const [events, setEvents] = useState<Event[]>(() => {
-    return JSON.parse(localStorage.getItem("events") || "null") || mockEvents;
-  });
-  const [loading, setLoading] = useState(true);
->>>>>>> kalpe-branch
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive' | 'sold_out'>('all');
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editing, setEditing] = useState<Event | null>(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const router = useRouter();
+  
+  const containerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
+  });
+  
+  
+  const headerY = useTransform(scrollYProgress, [0, 0.3], [0, -50]);
+  const headerOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
+  const statsY = useTransform(scrollYProgress, [0.2, 0.8], [50, -50]);
 
   useEffect(() => {
-<<<<<<< HEAD
+    // Check authentication
+    const isAuthenticated = localStorage.getItem('adminAuth');
+    if (!isAuthenticated) {
+      router.push('/admin/login');
+      return;
+    }
+
     const unsubscribe = eventsStore.subscribe((list) => {
       setEvents(list);
       setLoading(false);
     });
     return unsubscribe;
-=======
-    setTimeout(() => {
-      const storedEvents =JSON.parse(localStorage.getItem("events") || "null");
-      if (!storedEvents) {
-        localStorage.setItem("events", JSON.stringify(mockEvents));
-        setEvents(mockEvents);
-      } else {
-        setEvents(storedEvents);
-      }
-      setLoading(false);
-    }, 1000)
-
->>>>>>> kalpe-branch
-  }, []);
+  }, [router]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -58,28 +61,10 @@ export default function AdminEvents() {
     return event.maxTickets - event.soldTickets;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800';
-      case 'sold_out':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   const handleDeleteEvent = (eventId: string) => {
     if (confirm('Are you sure you want to delete this event?')) {
-<<<<<<< HEAD
       eventsStore.remove(eventId);
-=======
-      const updatedEvents = events.filter(event => event.id !== eventId);
-      setEvents(updatedEvents);
-      localStorage.setItem("events", JSON.stringify(updatedEvents));
->>>>>>> kalpe-branch
     }
   };
 
@@ -124,69 +109,203 @@ export default function AdminEvents() {
     return event.status === filter;
   });
 
+
+  const totalSales = useMemo(() => eventsStore.getTotalSales(), []);
+  const totalTickets = useMemo(() => eventsStore.getTotalTicketsSold(), []);
+
+  // Ultra-sophisticated animation variants
+  const pageVariants = {
+    initial: { opacity: 0 },
+    animate: { 
+      opacity: 1
+    }
+  };
+
+  const headerVariants = {
+    initial: { 
+      opacity: 0, 
+      y: -50,
+      scale: 0.95
+    },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 100,
+        damping: 20,
+        mass: 0.8,
+        delay: 0.2
+      }
+    }
+  };
+
+  const statsVariants = {
+    initial: { 
+      opacity: 0, 
+      y: 30,
+      scale: 0.9
+    },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 120,
+        damping: 20,
+        mass: 0.8,
+        delay: 0.4
+      }
+    }
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.12,
-        delayChildren: 0.1
+        staggerChildren: 0.15,
+        delayChildren: 0.2
       }
     }
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 25, scale: 0.96 },
+    hidden: { 
+      opacity: 0, 
+      y: 40, 
+      scale: 0.9,
+      rotateX: -10,
+      filter: "blur(5px)"
+    },
     visible: {
       opacity: 1,
       y: 0,
       scale: 1,
+      rotateX: 0,
+      filter: "blur(0px)",
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 120,
-        damping: 18,
-        mass: 0.7
+        damping: 20,
+        mass: 0.8
       }
     }
   };
 
-  const totalSales = useMemo(() => eventsStore.getTotalSales(), [events]);
-  const totalTickets = useMemo(() => eventsStore.getTotalTicketsSold(), [events]);
+  const modalVariants = {
+    hidden: { 
+      opacity: 0, 
+      scale: 0.8,
+      y: 50,
+      rotateX: -15
+    },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      y: 0,
+      rotateX: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 200,
+        damping: 25,
+        mass: 0.8
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      scale: 0.8,
+      y: 50,
+      rotateX: 15
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-white">
+    <motion.div 
+      ref={containerRef}
+      className="min-h-screen bg-[var(--bg-primary)] relative overflow-hidden"
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+    >
+      <AdminSidebar 
+        isCollapsed={isSidebarCollapsed} 
+        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+      />
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <motion.div
+          className="absolute top-20 left-20 w-2 h-2 bg-[var(--text-quaternary)] rounded-full opacity-20"
+          animate={{
+            scale: [1, 1.5, 1],
+            opacity: [0.2, 0.6, 0.2],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute top-40 right-32 w-1 h-1 bg-[var(--text-tertiary)] rounded-full opacity-30"
+          animate={{
+            scale: [1, 2, 1],
+            opacity: [0.3, 0.8, 0.3],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+        />
+      </div>
+
       <motion.header 
-        className="border-b border-gray-200"
-        initial={{ opacity: 0, y: -25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ 
-          type: "spring", 
-          stiffness: 100, 
-          damping: 18,
-          mass: 0.8
-        }}
+        ref={headerRef}
+        className="relative z-10 border-b border-[var(--border-ultra-light)]"
+        variants={headerVariants}
+        style={{ y: headerY, opacity: headerOpacity }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[var(--bg-primary)] via-[var(--bg-secondary)] to-[var(--bg-tertiary)]">
+          <div className="flex justify-between items-center py-8">
+            <motion.div 
+              className="flex items-center space-x-4"
+              whileHover={{ scale: 1.02 }}
+            >
               <Link href="/admin">
                 <motion.button
-                  className="flex items-center space-x-2 text-black hover:text-gray-600 transition-colors"
+                  className="flex items-center space-x-3 text-[var(--text-primary)] hover:text-[var(--text-secondary)] transition-all duration-300 group"
                   whileHover={{ 
-                    x: -5,
+                    x: -8,
                     transition: { type: "spring", stiffness: 300, damping: 20 }
                   }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span>Back to Dashboard</span>
+                  <motion.div
+                    animate={{ rotate: [0, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <ArrowLeft className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
+                  </motion.div>
+                  <span className="font-semibold">Back to Dashboard</span>
                 </motion.button>
               </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-black">Manage Events</h1>
+            </motion.div>
+            
+            <div className="flex items-center space-x-6">
+              <motion.h1 
+                className="text-3xl font-bold text-[var(--text-primary)] gradient-text"
+                whileHover={{ scale: 1.05 }}
+              >
+                Manage Events
+              </motion.h1>
+              
               <Link href="/admin/events/new">
                 <motion.button
-                  className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2"
+                  className="btn-primary px-6 py-3 flex items-center space-x-2 group"
                   whileHover={{ 
                     scale: 1.05,
                     transition: { type: "spring", stiffness: 300, damping: 20 }
@@ -196,8 +315,13 @@ export default function AdminEvents() {
                     transition: { type: "spring", stiffness: 400, damping: 25 }
                   }}
                 >
-                  <Plus className="h-4 w-4" />
-                  <span>New Event</span>
+                  <motion.div
+                    animate={{ rotate: [0, 90, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <Plus className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
+                  </motion.div>
+                  <span className="font-semibold">New Event</span>
                 </motion.button>
               </Link>
             </div>
@@ -205,39 +329,45 @@ export default function AdminEvents() {
         </div>
       </motion.header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className={`transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-70'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         {/* Edit Modal */}
-        {isEditOpen && editing && (
-          <motion.div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <motion.div
-              className="bg-white w-full max-w-2xl rounded-lg shadow-lg overflow-hidden"
-              initial={{ y: 50, opacity: 0, scale: 0.95 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 50, opacity: 0, scale: 0.95 }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 200, 
-                damping: 25,
-                mass: 0.8
-              }}
+        <AnimatePresence>
+          {isEditOpen && editing && (
+            <motion.div 
+              className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-overlay)] backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
             >
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-black">Edit Event</h3>
-                <button className="text-gray-500 hover:text-black" onClick={() => { setIsEditOpen(false); setEditing(null); }}>✕</button>
-              </div>
-              <div className="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">Title</label>
-                  <input className="w-full border border-gray-300 rounded-md p-2"
-                    value={editing.title}
-                    onChange={(e) => handleEditChange('title', e.target.value)} />
+              <motion.div
+                className="card-glass w-full max-w-2xl overflow-hidden"
+                variants={modalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
+                <div className="px-8 py-6 border-b border-[var(--border-ultra-light)] flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-[var(--text-primary)] gradient-text">Edit Event</h3>
+                  <motion.button 
+                    className="text-[var(--text-quaternary)] hover:text-[var(--text-primary)] transition-colors duration-300"
+                    onClick={() => { setIsEditOpen(false); setEditing(null); }}
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    ✕
+                  </motion.button>
                 </div>
+                <div className="px-8 py-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm text-[var(--text-tertiary)] mb-2 font-semibold">Title</label>
+                    <input 
+                      className="w-full border border-[var(--border-medium)] rounded-lg p-3 bg-[var(--bg-elevated)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:ring-2 focus:ring-[var(--accent-primary)]/20 transition-all duration-300"
+                      value={editing.title}
+                      onChange={(e) => handleEditChange('title', e.target.value)} 
+                    />
+                  </div>
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">Category</label>
                   <input className="w-full border border-gray-300 rounded-md p-2"
@@ -298,81 +428,138 @@ export default function AdminEvents() {
                     onChange={(e) => handleEditChange('image', e.target.value)} />
                 </div>
               </div>
-              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3">
-                <button className="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200" onClick={() => { setIsEditOpen(false); setEditing(null); }}>Cancel</button>
-                <button className="px-4 py-2 rounded-md bg-black text-white hover:bg-gray-800" onClick={handleSaveEdit}>Save Changes</button>
-              </div>
+                <div className="px-8 py-6 border-t border-[var(--border-ultra-light)] flex items-center justify-end gap-4">
+                  <motion.button 
+                    className="btn-secondary px-6 py-3" 
+                    onClick={() => { setIsEditOpen(false); setEditing(null); }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button 
+                    className="btn-primary px-6 py-3" 
+                    onClick={handleSaveEdit}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Save Changes
+                  </motion.button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
+          )}
+        </AnimatePresence>
         <motion.div
-          className="mb-8"
-          initial={{ opacity: 0, y: 25 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 100, 
-            damping: 15,
-            delay: 0.2
-          }}
+          ref={statsRef}
+          className="mb-12"
+          variants={statsVariants}
+          style={{ y: statsY }}
         >
-          <div className="flex space-x-4 items-center justify-between">
-            <div className="flex space-x-4">
-            {(['all', 'active', 'inactive', 'sold_out'] as const).map((status) => (
-              <button
-                key={status}
-                onClick={() => setFilter(status)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === status
-                    ? 'bg-black text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+          <div className="flex flex-col lg:flex-row space-y-6 lg:space-y-0 lg:space-x-8 items-start lg:items-center justify-between">
+            <div className="flex flex-wrap gap-3">
+              {(['all', 'active', 'inactive', 'sold_out'] as const).map((status, index) => (
+                <motion.button
+                  key={status}
+                  onClick={() => setFilter(status)}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2 ${
+                    filter === status
+                      ? 'bg-[var(--accent-primary)] text-[var(--text-inverse)] shadow-lg'
+                      : 'bg-[var(--bg-elevated)] text-[var(--text-tertiary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-ultra-light)]'
+                  }`}
+                  whileHover={{ 
+                    scale: 1.05,
+                    y: -2,
+                    transition: { type: "spring", stiffness: 300, damping: 20 }
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Filter className="h-4 w-4" />
+                  <span>{status === 'all' ? 'All Events' : status.replace('_', ' ').toUpperCase()}</span>
+                </motion.button>
+              ))}
+            </div>
+            
+            <motion.div 
+              className="flex space-x-8"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <motion.div 
+                className="text-center p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-ultra-light)]"
+                whileHover={{ scale: 1.05, y: -2 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                {status === 'all' ? 'All Events' : status.replace('_', ' ').toUpperCase()}
-              </button>
-            ))}
-            </div>
-            <div className="flex space-x-6">
-              <div className="text-center">
-                <p className="text-xs text-gray-500">Total Sales</p>
-                <p className="text-lg font-semibold">NPR {totalSales.toLocaleString()}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-gray-500">Tickets Sold</p>
-                <p className="text-lg font-semibold">{totalTickets}</p>
-              </div>
-            </div>
+                <div className="flex items-center justify-center mb-2">
+                  <DollarSign className="h-5 w-5 text-[var(--text-quaternary)] mr-2" />
+                  <p className="text-sm text-[var(--text-quaternary)] font-semibold">Total Sales</p>
+                </div>
+                <p className="text-2xl font-bold text-[var(--text-primary)]">NPR {totalSales.toLocaleString()}</p>
+              </motion.div>
+              
+              <motion.div 
+                className="text-center p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-ultra-light)]"
+                whileHover={{ scale: 1.05, y: -2 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <div className="flex items-center justify-center mb-2">
+                  <Users className="h-5 w-5 text-[var(--text-quaternary)] mr-2" />
+                  <p className="text-sm text-[var(--text-quaternary)] font-semibold">Tickets Sold</p>
+                </div>
+                <p className="text-2xl font-bold text-[var(--text-primary)]">{totalTickets}</p>
+              </motion.div>
+            </motion.div>
           </div>
         </motion.div>
 
         {loading ? (
           <div className="flex justify-center items-center py-20">
             <motion.div
-              className="w-8 h-8 border-2 border-black border-t-transparent rounded-full"
+              className="relative"
               animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            />
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            >
+              <div className="w-16 h-16 border-4 border-[var(--border-light)] border-t-[var(--text-primary)] rounded-full"></div>
+              <motion.div
+                className="absolute inset-0 w-16 h-16 border-4 border-transparent border-r-[var(--text-secondary)] rounded-full"
+                animate={{ rotate: -360 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              />
+            </motion.div>
           </div>
         ) : (
           <motion.div
-            className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
+            className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8"
             variants={containerVariants}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
           >
-            {filteredEvents.map((event) => (
+            {filteredEvents.map((event, index) => (
               <motion.div
                 key={event.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 will-change-transform"
+                className="card-interactive group"
                 variants={itemVariants}
                 whileHover={{ 
-                  y: -6,
-                  scale: 1.02,
+                  y: -15,
+                  scale: 1.03,
+                  rotateY: 5,
                   transition: { 
                     type: "spring", 
                     stiffness: 300, 
                     damping: 20 
                   }
+                }}
+                whileTap={{ 
+                  scale: 0.98,
+                  transition: { type: "spring", stiffness: 400, damping: 25 }
+                }}
+                style={{
+                  animationDelay: `${index * 0.1}s`
                 }}
               >
                 {event.image ? (
@@ -391,57 +578,76 @@ export default function AdminEvents() {
                     </motion.div>
                   </div>
                 ) : (
-                  <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                    <Calendar className="h-16 w-16 text-gray-400" />
+                  <div className="h-48 bg-gradient-to-br from-[var(--bg-tertiary)] to-[var(--bg-quaternary)] flex items-center justify-center relative overflow-hidden">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Calendar className="h-20 w-20 text-[var(--text-quaternary)]" />
+                    </motion.div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)]/60 via-transparent to-transparent"></div>
                   </div>
                 )}
                 
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-500 uppercase tracking-wide">
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <motion.span 
+                      className="text-sm text-[var(--text-quaternary)] uppercase tracking-wider font-semibold"
+                      whileHover={{ scale: 1.1 }}
+                    >
                       {event.category}
-                    </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(event.status)}`}>
+                    </motion.span>
+                    <motion.span 
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        event.status === 'active' ? 'bg-[var(--bg-secondary)] text-[var(--text-primary)] border border-[var(--border-medium)]' :
+                        event.status === 'inactive' ? 'bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] border border-[var(--border-light)]' :
+                        'bg-[var(--bg-quaternary)] text-[var(--text-quaternary)] border border-[var(--border-ultra-light)]'
+                      }`}
+                      whileHover={{ scale: 1.1 }}
+                    >
                       {event.status.replace('_', ' ')}
-                    </span>
+                    </motion.span>
                   </div>
                   
-                  <h3 className="text-xl font-bold text-black mb-2">
+                  <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-4 group-hover:text-[var(--text-secondary)] transition-colors duration-300">
                     {event.title}
                   </h3>
                   
-                  <p className="text-gray-600 mb-4 line-clamp-2">
+                  <p className="text-[var(--text-tertiary)] mb-6 line-clamp-3 leading-relaxed">
                     {event.description}
                   </p>
                   
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Calendar className="h-4 w-4 mr-2" />
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center text-sm text-[var(--text-tertiary)]">
+                      <Calendar className="h-4 w-4 mr-3 text-[var(--text-quaternary)]" />
                       {formatDate(event.date)}
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Clock className="h-4 w-4 mr-2" />
+                    <div className="flex items-center text-sm text-[var(--text-tertiary)]">
+                      <Clock className="h-4 w-4 mr-3 text-[var(--text-quaternary)]" />
                       {event.time}
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <MapPin className="h-4 w-4 mr-2" />
+                    <div className="flex items-center text-sm text-[var(--text-tertiary)]">
+                      <MapPin className="h-4 w-4 mr-3 text-[var(--text-quaternary)]" />
                       {event.venue}
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-lg font-bold text-black">
+                  <div className="flex items-center justify-between mb-6">
+                    <motion.span 
+                      className="text-2xl font-bold text-[var(--text-primary)]"
+                      whileHover={{ scale: 1.1 }}
+                    >
                       NPR {event.price}
-                    </span>
-                    <span className="text-sm text-gray-500">
+                    </motion.span>
+                    <span className="text-sm text-[var(--text-quaternary)] font-medium">
                       {getAvailableTickets(event)}/{event.maxTickets} tickets
                     </span>
                   </div>
                   
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-3">
                     <Link href={`/events/${event.id}`}>
                       <motion.button
-                        className="flex-1 bg-gray-100 text-black py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-1"
+                        className="flex-1 btn-secondary py-3 px-4 flex items-center justify-center space-x-2 group"
                         whileHover={{ 
                           scale: 1.05,
                           transition: { type: "spring", stiffness: 300, damping: 20 }
@@ -451,13 +657,13 @@ export default function AdminEvents() {
                           transition: { type: "spring", stiffness: 400, damping: 25 }
                         }}
                       >
-                        <Eye className="h-4 w-4" />
-                        <span>View</span>
+                        <Eye className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+                        <span className="font-semibold">View</span>
                       </motion.button>
                     </Link>
                     
                     <motion.button
-                      className="flex-1 bg-blue-100 text-blue-800 py-2 px-3 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center space-x-1"
+                      className="flex-1 btn-secondary py-3 px-4 flex items-center justify-center space-x-2 group"
                       whileHover={{ 
                         scale: 1.05,
                         transition: { type: "spring", stiffness: 300, damping: 20 }
@@ -468,13 +674,13 @@ export default function AdminEvents() {
                       }}
                       onClick={() => handleEditEvent(event.id)}
                     >
-                      <Edit className="h-4 w-4" />
-                      <span>Edit</span>
+                      <Edit className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+                      <span className="font-semibold">Edit</span>
                     </motion.button>
                     
                     <motion.button
                       onClick={() => handleDeleteEvent(event.id)}
-                      className="flex-1 bg-red-100 text-red-800 py-2 px-3 rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center space-x-1"
+                      className="flex-1 btn-secondary py-3 px-4 flex items-center justify-center space-x-2 group hover:bg-[var(--bg-quaternary)] hover:text-[var(--text-primary)]"
                       whileHover={{ 
                         scale: 1.05,
                         transition: { type: "spring", stiffness: 300, damping: 20 }
@@ -484,8 +690,8 @@ export default function AdminEvents() {
                         transition: { type: "spring", stiffness: 400, damping: 25 }
                       }}
                     >
-                      <Trash2 className="h-4 w-4" />
-                      <span>Delete</span>
+                      <Trash2 className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+                      <span className="font-semibold">Delete</span>
                     </motion.button>
                   </div>
                 </div>
@@ -497,7 +703,7 @@ export default function AdminEvents() {
         {!loading && filteredEvents.length === 0 && (
           <motion.div
             className="text-center py-20"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ 
               type: "spring", 
@@ -505,9 +711,14 @@ export default function AdminEvents() {
               damping: 15
             }}
           >
-            <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-black mb-2">No events found</h3>
-            <p className="text-gray-600 mb-6">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            >
+              <Calendar className="h-20 w-20 text-[var(--text-quaternary)] mx-auto mb-6" />
+            </motion.div>
+            <h3 className="text-3xl font-bold text-[var(--text-primary)] mb-4 gradient-text">No events found</h3>
+            <p className="text-[var(--text-tertiary)] mb-8 text-lg">
               {filter === 'all' 
                 ? 'Create your first event to get started'
                 : `No events with status "${filter}" found`
@@ -515,7 +726,7 @@ export default function AdminEvents() {
             </p>
             <Link href="/admin/events/new">
               <motion.button
-                className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
+                className="btn-primary px-8 py-4 text-lg font-semibold"
                 whileHover={{ 
                   scale: 1.05,
                   transition: { type: "spring", stiffness: 300, damping: 20 }
@@ -530,7 +741,8 @@ export default function AdminEvents() {
             </Link>
           </motion.div>
         )}
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

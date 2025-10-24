@@ -5,7 +5,6 @@ import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Users, Save, X } from '
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { title } from 'process';
 
 interface EventForm {
   title: string;
