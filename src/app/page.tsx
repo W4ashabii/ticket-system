@@ -55,15 +55,34 @@ const mockEvents: Event[] = [
 ];
 
 export default function Home() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<Event[]>(() => {
+    try{
+      const stored = localStorage.getItem("events");
+      return stored ? JSON.parse(stored) : mockEvents;
+    } catch{
+      return mockEvents;
+    }
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setTimeout(() => {
+      try{
+        const stored = localStorage.getItem("events");
+        const parsed = stored ? JSON.parse(stored) :null;
+        if (!parsed) {
+          localStorage.setItem("events", JSON.stringify(mockEvents));
+         setEvents(mockEvents);
+        } else{
+         setEvents(parsed);
+      }
+    } catch {
+      localStorage.setItem("events", JSON.stringify(mockEvents));
       setEvents(mockEvents);
-      setLoading(false);
-    }, 1000);
-  }, []);
+    }
+    setLoading(false);
+      },1000);
+     }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
