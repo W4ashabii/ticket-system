@@ -11,18 +11,39 @@ import { eventsStore } from '@/services/events';
 const mockEvents: Event[] = [];
 
 export default function AdminEvents() {
+<<<<<<< HEAD
   const [events, setEvents] = useState<Event[]>(eventsStore.getAll());
   const [loading, setLoading] = useState(events.length === 0);
+=======
+  const [events, setEvents] = useState<Event[]>(() => {
+    return JSON.parse(localStorage.getItem("events") || "null") || mockEvents;
+  });
+  const [loading, setLoading] = useState(true);
+>>>>>>> kalpe-branch
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive' | 'sold_out'>('all');
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editing, setEditing] = useState<Event | null>(null);
 
   useEffect(() => {
+<<<<<<< HEAD
     const unsubscribe = eventsStore.subscribe((list) => {
       setEvents(list);
       setLoading(false);
     });
     return unsubscribe;
+=======
+    setTimeout(() => {
+      const storedEvents =JSON.parse(localStorage.getItem("events") || "null");
+      if (!storedEvents) {
+        localStorage.setItem("events", JSON.stringify(mockEvents));
+        setEvents(mockEvents);
+      } else {
+        setEvents(storedEvents);
+      }
+      setLoading(false);
+    }, 1000)
+
+>>>>>>> kalpe-branch
   }, []);
 
   const formatDate = (dateString: string) => {
@@ -52,7 +73,13 @@ export default function AdminEvents() {
 
   const handleDeleteEvent = (eventId: string) => {
     if (confirm('Are you sure you want to delete this event?')) {
+<<<<<<< HEAD
       eventsStore.remove(eventId);
+=======
+      const updatedEvents = events.filter(event => event.id !== eventId);
+      setEvents(updatedEvents);
+      localStorage.setItem("events", JSON.stringify(updatedEvents));
+>>>>>>> kalpe-branch
     }
   };
 

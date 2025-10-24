@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Users, Save, X } from '
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { title } from 'process';
 
 interface EventForm {
   title: string;
@@ -48,10 +49,30 @@ export default function CreateEvent() {
     e.preventDefault();
     setLoading(true);
 
+
+    const newEvent = {
+      id: Date.now().toString(),
+      title: formData.title,
+      description: formData.description,
+      date: formData.date,
+      time: formData.time,
+      venue: formData.venue,
+      price: formData.price,
+      maxTickets: formData.maxTickets,
+      category: formData.category,
+      soldTickets: 0,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const existingEvents =JSON.parse(localStorage.getItem("events") || "[]");
+    localStorage.setItem("events", JSON.stringify([...existingEvents, newEvent]));
+
     setTimeout(() => {
       setLoading(false);
-      alert('Event created successfully!');
-      router.push('/admin');
+      alert("Event created successfully");
+      router.push("/admin/events");
     }, 2000);
   };
 

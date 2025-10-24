@@ -78,10 +78,15 @@ export default function EventDetails() {
 
   useEffect(() => {
     setTimeout(() => {
-      const foundEvent = mockEvents.find(e => e.id === params.id);
-      setEvent(foundEvent || null);
+      const storedEvents = JSON.parse(localStorage.getItem("events") || "null");
+      if (!storedEvents) {
+        localStorage.setItem("events" , JSON.stringify(mockEvents));
+          setEvent(mockEvents.find(e => e.id === params.id) || null);
+      } else {
+        setEvent(storedEvents.find((e: Event) => e.id === params.id) || null);
+      }
       setLoading(false);
-    }, 1000);
+    }, 500);
   }, [params.id]);
 
   const formatDate = (dateString: string) => {
@@ -101,9 +106,20 @@ export default function EventDetails() {
     e.preventDefault();
     setProcessing(true);
 
-    setTimeout(() => {
+    setTimeout(() =>{
+      if (event) {
+        const storedEvents=JSON.parse(localStorage.getItem("events") || "[]]");
+        const updatedEvents = storedEvents.map((ev: Event) => {
+          if (ev.id ===event.id) {
+            return {...ev, soldTickets: ev.soldTickets + bookingForm.quantity};
+          }
+          return ev;
+        });
+        localStorage.setItem("events", JSON.stringify(updatedEvents));
+        setEvent(updatedEvents.find((ev: Event) => ev.id === event.id) || null);
+      }
       setProcessing(false);
-      alert('Payment successful! You will receive a confirmation email shortly.');
+      alert("Payment successful! You will receive a confirmation email shortly.");
       setShowBookingForm(false);
     }, 3000);
   };
